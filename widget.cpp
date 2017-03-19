@@ -8,14 +8,17 @@
 */
 #include "widget.h"
 #include "ui_widget.h"
+#include "apple.h"
 
 Widget::Widget(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::Widget)
 {
     ui->setupUi(this);
-    this->resize(600,600);          /// Задаем размеры виджета, то есть окна
-   this->setFixedSize(700,700);    /// Фиксируем размеры виджета
+    this->resize(600,640);          /// Задаем размеры виджета, то есть окна
+    this->setFixedSize(600,640);    /// Фиксируем размеры виджета
+
+    count = 0;
 
     scene = new QGraphicsScene();   /// Инициализируем графическую сцену
     triangle = new Triangle();      /// Инициализируем треугольник
@@ -25,31 +28,65 @@ Widget::Widget(QWidget *parent) :
     ui->graphicsView->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff); /// Отключаем скроллбар по вертикали
     ui->graphicsView->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff); /// Отключаем скроллбар по горизонтали
 
-    scene->setSceneRect(-160,-160,400,400); /// Устанавливаем область графической сцены
-
-    scene->addLine(-250,0,250,0,QPen(Qt::black));   /// Добавляем горизонтальную линию через центр
-    scene->addLine(0,-250,0,250,QPen(Qt::black));   /// Добавляем вертикальную линию через центр
-
-    /* Дополнительно нарисуем органичение территории в графической сцене */
-    scene->addLine(-250,-250, 250,-250, QPen(Qt::black));
-    scene->addLine(-250, 250, 250, 250, QPen(Qt::black));
-    scene->addLine(-250,-250,-250, 250, QPen(Qt::black));
-    scene->addLine( 250,-250, 250, 250, QPen(Qt::black));
+    scene->setSceneRect(-250,-250,500,500); /// Устанавливаем область графической сцены
 
     scene->addItem(triangle);   /// Добавляем на сцену треугольник
     triangle->setPos(0,0);      /// Устанавливаем треугольник в центр сцены
 
+
+
     /* Инициализируем таймер и вызываем слот обработки сигнала таймера
-     * у Треугольника 20 раз в секунду.
+     * у Треугольника 100 раз в секунду.
      * Управляя скоростью отсчётов, соответственно управляем скоростью
      * изменения состояния графической сцены
      * */
     timer = new QTimer();
     connect(timer, &QTimer::timeout, triangle, &Triangle::slotGameTimer);
-    timer->start(1000 / 50);
+    timer->start(1000 / 100);
+
+    /* Раз в секунду отсылаем сигнал на создание яблока в игре
+     * */
+    timerCreateApple = new QTimer();
+    connect(timerCreateApple, &QTimer::timeout, this, &Widget::slotCreateApple);
+    timerCreateApple->start(1000);
+
+    /* Подключаем сигнал от Мухи, в котором передаются Объекты, на которые
+     * наткнулась Муха
+     * */
+    connect(triangle, &Triangle::signalCheckItem, this, &Widget::slotDeleteApple);
+
 }
 
 Widget::~Widget()
 {
     delete ui;
+}
+
+void Widget::slotDeleteApple(QGraphicsItem *item)
+{
+    /* Получив сигнал от Мухи
+     * Перебираем весь список яблок и удаляем найденное яблоко
+     * */
+    foreach (QGraphicsItem *apple, apples) {
+        if(apple == item){
+            scene->removeItem(apple);   // Удаляем со сцены
+            apples.removeOne(item);     // Удаляем из списка
+            delete apple;               // Вообще удаляем
+            ui->lcdNumber->display(count++);    /* Увеличиваем счёт на единицу
+                                                 * и отображаем на дисплее
+                                                 * */
+        }
+    }
+}
+
+void Widget::slotCreateApple()
+{
+    Apple *apple = new Apple(); // Создаём яблоко
+    scene->addItem(apple);      // Помещаем его в сцену со случайной позицией
+    apple->setPos((qrand() % (251)) * ((qrand()%2 == 1)?1:-1),
+                  (qrand() % (251)) * ((qrand()%2 == 1)?1:-1));
+    apple->setZValue(-1);       /* Помещаем яблоко ниже Мухи, то есть Муха
+                                 * на сцене будет выше яблок
+                                 * */
+    apples.append(apple);       // Добавляем Муху в Список
 }

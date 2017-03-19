@@ -25,9 +25,11 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 SOURCES += main.cpp\
         widget.cpp \
-    triangle.cpp
+    triangle.cpp \
+    apple.cpp
 
 HEADERS  += widget.h \
-    triangle.h
+    triangle.h \
+    apple.h
 
 FORMS    += widget.ui

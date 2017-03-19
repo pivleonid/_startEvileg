@@ -28,6 +28,11 @@ public:
     ~Triangle();
 
 signals:
+    /* Сигнал, который передаётся в ядро игры с элементом QGraphicsItem,
+     * на который наткнулась муха, и требуется принять решение о том,
+     * что с этим элементом делать.
+     * */
+    void signalCheckItem(QGraphicsItem *item);
 
 public slots:
     void slotGameTimer(); // Слот, который отвечает за обработку перемещения треугольника
@@ -39,7 +44,8 @@ protected:
 
 private:
     qreal angle;    // Угол поворота графического объекта
-
+    int steps;          // Номер положения ножек мухи
+    int countForSteps;  // Счётчик для отсчета тиков таймера, при которых мы нажимали на кнопки
 };
 
 #endif // TRIANGLE_H
