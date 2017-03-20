@@ -88,5 +88,5 @@ void Widget::slotCreateApple()
     apple->setZValue(-1);       /* Помещаем яблоко ниже Мухи, то есть Муха
                                  * на сцене будет выше яблок
                                  * */
-    apples.append(apple);       // Добавляем Муху в Список
+    apples.append(apple);       // Добавляем Яблоко в Список
 }
